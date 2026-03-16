@@ -1,0 +1,50 @@
+{
+  "id": "feishu-openclaw-codecli",
+  "name": "Feishu OpenClaw CodeCLI",
+  "description": "飞书多维表格 × Cursor CLI 自动化闭环 - 反馈驱动自动改码",
+  "version": "1.0.0",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "projects": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "string"
+        },
+        "description": "项目名称到本地路径的映射表，例如 { \"trae导出记录\": \"/mnt/d/味全/研发本部/trae记录导出\" }"
+      },
+      "bitableTables": {
+        "type": "object",
+        "additionalProperties": {
+          "type": "object",
+          "properties": {
+            "app_token": {
+              "type": "string"
+            },
+            "table_id": {
+              "type": "string"
+            }
+          }
+        },
+        "description": "项目名称到飞书多维表格的映射，格式: { \"trae导出记录\": { \"app_token\": \"xxx\", \"table_id\": \"xxx\" } }"
+      },
+      "defaultTimeoutSec": {
+        "type": "integer",
+        "minimum": 30,
+        "maximum": 1800,
+        "description": "Cursor CLI 默认超时（秒），默认 600"
+      }
+    }
+  },
+  "uiHints": {
+    "projects": {
+      "label": "项目路径映射",
+      "help": "项目名称到本地绝对路径的映射"
+    },
+    "bitableTables": {
+      "label": "多维表格配置",
+      "help": "各项目对应的飞书多维表格 app_token 和 table_id"
+    }
+  }
+}
