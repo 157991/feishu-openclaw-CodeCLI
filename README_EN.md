@@ -11,7 +11,7 @@ Users submit feedback in Feishu Bitable → OpenClaw polls periodically → Curs
 
 1. [OpenClaw](https://docs.openclaw.ai) installed and Feishu Bot configured
 2. [cursor-agent-skill](https://github.com/toheart/cursor-agent) installed with Cursor CLI logged in
-3. [feishu-bitable-skill](https://github.com/your-org/feishu-bitable-skill) installed
+3. **feishu-bitable-skill** (bundled companion skill, already in OpenClaw workspace/skills)
 4. Feishu app has `bitable:app` and `base:app:create` permissions
 
 ## Installation
@@ -20,7 +20,7 @@ Users submit feedback in Feishu Bitable → OpenClaw polls periodically → Curs
 
 ```bash
 cd ~/.openclaw/workspace/skills
-git clone https://github.com/your-github/feishu-openclaw-CodeCLI.git feishu-openclaw-CodeCLI-1.0.0
+git clone https://github.com/157991/feishu-openclaw-CodeCLI.git feishu-openclaw-CodeCLI-1.0.0
 cd feishu-openclaw-CodeCLI-1.0.0
 npm install && npm run build && npm pack
 openclaw plugins install feishu-openclaw-CodeCLI-1.0.0.tgz

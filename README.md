@@ -14,7 +14,7 @@
 
 1. 已安装 [OpenClaw](https://docs.openclaw.ai) 并配置好飞书 Bot
 2. 已安装 [cursor-agent-skill](https://github.com/toheart/cursor-agent) 并且 Cursor CLI 已登录
-3. 已安装 [feishu-bitable-skill](https://github.com/your-org/feishu-bitable-skill)（提供 Python 工具函数）
+3. **feishu-bitable-skill**（本套件配套组件，已包含在 OpenClaw workspace/skills 中，提供创建多维表格的 Python 脚本）
 4. 飞书应用已开通 `bitable:app`、`base:app:create` 权限
 
 ## 安装步骤
@@ -24,7 +24,7 @@
 ```bash
 # 克隆仓库
 cd ~/.openclaw/workspace/skills
-git clone https://github.com/your-github/feishu-openclaw-CodeCLI.git feishu-openclaw-CodeCLI-1.0.0
+git clone https://github.com/157991/feishu-openclaw-CodeCLI.git feishu-openclaw-CodeCLI-1.0.0
 
 # 构建
 cd feishu-openclaw-CodeCLI-1.0.0
