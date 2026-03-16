@@ -14,7 +14,6 @@
 
 1. 已安装 [OpenClaw](https://docs.openclaw.ai) 并配置好飞书 Bot
 2. 已安装 [cursor-agent-skill](https://github.com/toheart/cursor-agent) 并且 Cursor CLI 已登录
-3. **feishu-bitable-skill**（本套件配套组件，已包含在 OpenClaw workspace/skills 中，提供创建多维表格的 Python 脚本）
 4. 飞书应用已开通 `bitable:app`、`base:app:create` 权限
 
 ## 安装步骤
@@ -77,7 +76,7 @@ openclaw plugins install feishu-openclaw-CodeCLI-1.0.0.tgz
 python3 setup/01_create_bitable.py --project "你的项目名" --name "项目名称 - 用户反馈系统"
 ```
 
-脚本执行成功后会输出 `app_token` 和 `table_id`，并自动写入 `openclaw.json`。
+脚本执行成功后会自动：创建表格 → 添加所有字段 → **设为组织内所有成员可编辑** → 写入 `openclaw.json`。无需额外配置权限。
 
 ### 第 4 步：注册定时任务
 
