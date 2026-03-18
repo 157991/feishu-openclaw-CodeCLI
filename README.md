@@ -14,25 +14,20 @@
 
 1. 已安装 [OpenClaw](https://docs.openclaw.ai) 并配置好飞书 Bot
 2. 已安装 [cursor-agent-skill](https://github.com/toheart/cursor-agent) 并且 Cursor CLI 已登录
-4. 飞书应用已开通 `bitable:app`、`base:app:create` 权限
+3. 飞书应用已开通 `bitable:app`、`base:app:create`、`drive:drive` 权限
 
 ## 安装步骤
 
 ### 第 1 步：安装插件
 
 ```bash
-# 克隆仓库
 cd ~/.openclaw/workspace/skills
 git clone https://github.com/157991/feishu-openclaw-CodeCLI.git feishu-openclaw-CodeCLI-1.0.0
 
-# 构建
 cd feishu-openclaw-CodeCLI-1.0.0
-npm install
-npm run build
-npm pack
+npm install && npm run build && npm pack
 
-# 安装到 OpenClaw
-openclaw plugins install feishu-openclaw-CodeCLI-1.0.0.tgz
+openclaw plugins install feishu-openclaw-codecli-1.0.0.tgz
 ```
 
 ### 第 2 步：配置 openclaw.json
@@ -43,7 +38,7 @@ openclaw plugins install feishu-openclaw-CodeCLI-1.0.0.tgz
 {
   "plugins": {
     "entries": {
-      "feishu-openclaw-CodeCLI": {
+      "feishu-openclaw-codecli": {
         "enabled": true,
         "config": {
           "projects": {
@@ -70,19 +65,32 @@ openclaw plugins install feishu-openclaw-CodeCLI-1.0.0.tgz
 
 ### 第 3 步：创建飞书多维表格
 
-运行一次性脚本，自动创建表格并配置好所有字段：
-
 ```bash
 python3 setup/01_create_bitable.py --project "你的项目名" --name "项目名称 - 用户反馈系统"
 ```
 
-脚本执行成功后会自动：创建表格 → 添加所有字段 → **设为组织内所有成员可编辑** → 写入 `openclaw.json`。无需额外配置权限。
+脚本执行成功后会自动：
+- 创建表格 + 所有字段（含「确认提交」复选框和「Cursor处理结果」字段）
+- **设为「任何人有链接可编辑」**（评委/外部用户无需登录即可编辑）
+- 写入 `openclaw.json` 的 `bitableTables`
+
+如果已有表格需要补充字段：
+```bash
+python3 setup/03_add_field.py --app-token "APP_TOKEN" --table-id "TABLE_ID"
+```
+
+如果需要单独设置权限：
+```bash
+python3 setup/set_permission.py APP_TOKEN
+```
 
 ### 第 4 步：注册定时任务
 
 ```bash
-# 从 openclaw.json 中获取上一步生成的 app_token 和 table_id
-bash setup/02_setup_cron.sh   --project "你的项目名"   --app-token "YOUR_APP_TOKEN"   --table-id "YOUR_TABLE_ID"
+bash setup/02_setup_cron.sh \
+  --project "你的项目名" \
+  --app-token "YOUR_APP_TOKEN" \
+  --table-id "YOUR_TABLE_ID"
 ```
 
 ### 第 5 步：重启网关
@@ -95,92 +103,101 @@ openclaw gateway restart
 
 ### 方式一：在多维表格中填写反馈（自动处理）
 
-1. 打开飞书多维表格
+1. 打开飞书多维表格链接
 2. 新增一行，填写「反馈内容」、「优先级」、「反馈分类」
-3. 填写完毕后，勾选「确认提交」复选框 ✅
-4. OpenClaw 每小时轮询一次，发现已勾选且状态为「待处理」的记录，自动调用 Cursor Agent 处理
-5. 处理完成后，表格状态更新为「已完成」，「Cursor处理结果」字段写入处理内容
+3. **⚠️ 触发自动处理必须同时完成以下两步：**
+   - 「状态」字段选择 → **待处理**
+   - 「确认提交」字段 → **勾选 ✅**
+4. OpenClaw 每小时轮询，发现符合条件的记录后自动调用 Cursor Agent 处理
+5. 处理完成后，「状态」更新为「已完成」，「Cursor处理结果」字段写入处理摘要
+
+> **重要**：正在编辑但未勾选「确认提交」的记录不会被误处理。只有两个条件同时满足时才触发。
 
 ### 方式二：在飞书 Bot 中发命令（即时处理）
 
 ```
-# 分析项目结构
-/trae 你的项目名 analyze
-
-# 手动写入一条反馈
-/trae 你的项目名 feedback "反馈内容"
-
-# 调用 Cursor 立即修复某个问题
-/trae 你的项目名 fix "问题描述"
-
-# 完整闭环：分析 + 记录反馈 + Cursor 修复
-/trae 你的项目名 auto "需求描述"
+/trae 你的项目名 analyze          # 分析项目结构
+/trae 你的项目名 feedback "内容"  # 手动写入反馈记录
+/trae 你的项目名 fix "问题描述"    # 立即调用 Cursor 修复
+/trae 你的项目名 auto "需求描述"   # 完整闭环
 ```
 
-## 自动化流程
+## 自动化流程图
 
 ```
-用户填写反馈          勾选确认提交        cron 每小时轮询
-(多维表格)      →     (确认写完了)   →   (查询待处理记录)
-                                               ↓
-                                        调用 Cursor Agent
-                                        (agent 模式修代码)
-                                               ↓
-                                        回写处理结果到表格
-                                        (状态→已完成)
+用户在多维表格填写反馈
+        ↓
+  状态 → 「待处理」
+  确认提交 → ✅ 勾选
+        ↓
+  cron 每小时轮询
+  过滤：状态=待处理 AND 确认提交=true
+        ↓
+  ┌─ 无记录 → 静默，不发送任何消息
+  └─ 有记录 → 逐条处理：
+       ├ 状态 → 「处理中」
+       ├ 调用 Cursor Agent（agent 模式修改代码）
+       ├ 处理摘要写入「Cursor处理结果」
+       └ 状态 → 「已完成」
 ```
 
 ## 字段说明
 
 | 字段名 | 类型 | 说明 |
 |-------|------|------|
-| 反馈内容 | 文本 | 必填，描述问题或需求 |
-| 反馈分类 | 单选 | 功能问题/性能优化/新增功能等 |
-| 优先级 | 单选 | 高/中/低 |
-| 状态 | 单选 | 待处理/处理中/已完成/已关闭（自动维护） |
+| 反馈内容 | 文本 | **必填**，描述问题或需求 |
+| 反馈分类 | 单选 | 功能问题 / 性能优化 / 新增功能 / 界面改进 / 其他 |
+| 优先级 | 单选 | 高 / 中 / 低 |
+| 状态 | 单选 | 待处理 / 处理中 / 已完成 / 已关闭（**必须手动选为「待处理」**） |
 | 确认提交 | 复选框 | **必须勾选**，否则不会被自动处理 |
-| Cursor处理结果 | 文本 | 自动填写，记录 Cursor Agent 的处理摘要 |
+| Cursor处理结果 | 文本 | 自动填写，Cursor Agent 处理摘要 |
+| 提交时间 | 日期 | 提交反馈的时间 |
 | 提交人 | 文本 | 可选 |
-| 关联文件 | 文本 | 可选，关联的代码文件路径 |
 | 处理备注 | 文本 | 自动填写或手动备注 |
 
 ## 项目结构
 
 ```
 feishu-openclaw-CodeCLI/
-├── README.md                # 本文件（中文版）
-├── README_EN.md             # English version
-├── openclaw.plugin.json     # 插件清单
+├── README.md
+├── SKILL.md                  # AI Agent 指令文件
+├── openclaw.plugin.json      # 插件清单
 ├── package.json
 ├── tsconfig.json
 ├── .gitignore
-├── src/                     # TypeScript 源码
-│   ├── index.ts             # 入口，注册 /trae 命令
-│   ├── types.ts             # 类型定义
-│   ├── bitable-manager.ts   # 飞书多维表格操作
-│   ├── analyzer.ts          # 项目结构分析
-│   └── cursor-runner.ts     # Cursor CLI 调用
-├── dist/                    # 编译输出（gitignore）
-│   └── index.js
-└── setup/                   # 一次性配置脚本
-    ├── 01_create_bitable.py # 创建飞书多维表格
-    ├── 02_setup_cron.sh     # 注册 cron 定时任务
-    └── 03_add_field.py      # 给已有表格补充字段
+├── src/
+│   ├── index.ts              # 入口，注册 /trae 命令
+│   ├── types.ts              # 类型定义
+│   ├── bitable-manager.ts    # 飞书多维表格 CRUD
+│   ├── analyzer.ts           # 项目结构分析
+│   └── cursor-runner.ts      # Cursor CLI 调用封装
+└── setup/                    # 一次性配置脚本（skill 自带）
+    ├── 01_create_bitable.py  # 创建飞书多维表格 + 设权限
+    ├── 02_setup_cron.sh      # 注册 cron 定时任务
+    ├── 03_add_field.py       # 给已有表格补充字段
+    └── set_permission.py     # 单独设置「任何人可编辑」权限
 ```
 
 ## 常见问题
 
 **Q: 权限错误 code=99991672**
-飞书应用缺少多维表格权限，访问以下链接开通：
-`https://open.feishu.cn/app/YOUR_APP_ID/auth?q=bitable:app,base:app:create`
+飞书应用缺少多维表格权限，在飞书开放平台后台为应用开通 `bitable:app`、`base:app:create` 权限。
+
+**Q: 表格打开后无法编辑**
+运行 `python3 setup/set_permission.py YOUR_APP_TOKEN` 设为任何人可编辑。
 
 **Q: cursor_agent 调用失败**
-确认 cursor-agent-skill 已安装，Cursor CLI 已登录（`cursor --version` 验证）
+确认 cursor-agent-skill 已安装，Cursor CLI 已登录（`cursor --version` 验证）。
 
-**Q: 反馈记录没有被处理**
-检查是否同时满足：1) 状态为「待处理」2) 「确认提交」已勾选
+**Q: 反馈记录没有被自动处理**
+检查是否**同时**满足：① 状态为「待处理」② 「确认提交」已勾选 ✅。两个条件缺一不可。
 
 **Q: 如何调整轮询频率**
 ```bash
-openclaw cron edit <CRON_ID> --every 30m  # 改为30分钟
+openclaw cron list                       # 查看 cron ID
+openclaw cron edit <CRON_ID> --every 30m # 改为30分钟
 ```
+
+## License
+
+MIT
