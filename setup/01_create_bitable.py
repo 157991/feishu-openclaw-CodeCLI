@@ -84,8 +84,8 @@ def set_public_edit(token, app_token):
             json={
                 "external_access_entity": "open",
                 "security_entity": "anyone_can_edit",
-                "link_share_entity": "tenant_editable",
-                "invite_external": False
+                "link_share_entity": "anyone_editable",
+                "invite_external": True
             }
         )
         print("  ✅ 权限已设为「组织内所有人可编辑」")
