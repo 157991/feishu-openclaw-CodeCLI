@@ -1,7 +1,7 @@
 #!/bin/bash
 # 02_setup_cron.sh
 # ================
-# 一次性脚本：注册定时轮询 cron 任务，每5分钟自动检查反馈表格。
+# 一次性脚本：注册定时轮询 cron 任务，每分钟自动检查反馈表格。
 #
 # 用法：
 #   bash setup/02_setup_cron.sh --project "trae导出记录" --app-token "YOUR_APP_TOKEN" --table-id "YOUR_TABLE_ID"
@@ -56,14 +56,14 @@ echo "📅 注册 cron 任务: $CRON_NAME"
 
 openclaw cron add \
   --name "$CRON_NAME" \
-  --every 5m \
+  --every 1m \
   --timeout-seconds 900 \
   --session isolated \
   --no-deliver \
-  --description "每5分钟检查${PROJECT}多维表格中确认提交且待处理的反馈，自动调用Cursor CLI处理" \
+  --description "每分钟检查${PROJECT}多维表格中确认提交且待处理的反馈，自动调用Cursor CLI处理" \
   --message "$MSG"
 
 echo ""
-echo "✅ cron 任务已注册，每5分钟自动执行"
+echo "✅ cron 任务已注册，每分钟自动执行"
 echo "   查看任务: openclaw cron list"
 echo "   立即测试: openclaw cron run <ID>"
