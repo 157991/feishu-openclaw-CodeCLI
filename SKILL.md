@@ -54,7 +54,7 @@ exec(command='bash ~/.openclaw/workspace/skills/feishu-openclaw-CodeCLI-1.0.0/se
 ```
 
 > 把项目名、APP_TOKEN、TABLE_ID 替换为实际值。
-> 注册后每小时自动轮询一次。
+> 注册后每5分钟自动轮询一次。
 
 ## 第 5 步：向用户汇报
 
@@ -68,10 +68,10 @@ exec(command='bash ~/.openclaw/workspace/skills/feishu-openclaw-CodeCLI-1.0.0/se
 > 1. 「状态」字段选择 → **待处理**
 > 2. 「确认提交」字段 → **勾选 ✅**
 >
-> 只有同时满足「状态=待处理」+「确认提交=✅」的记录，才会被每小时自动检测并由 Cursor Agent 处理。
+> 只有同时满足「状态=待处理」+「确认提交=✅」的记录，才会被每5分钟自动检测并由 Cursor Agent 处理。
 > 正在编辑中未勾选的记录不会被误处理。
 
-3. **已注册定时任务**，每小时自动检查处理
+3. **已注册定时任务**，每5分钟自动检查处理
 
 ---
 
@@ -83,7 +83,7 @@ exec(command='bash ~/.openclaw/workspace/skills/feishu-openclaw-CodeCLI-1.0.0/se
   → 「状态」选为 "待处理"
   → 勾选「确认提交」✅
   ↓
-OpenClaw cron 每小时轮询
+OpenClaw cron 每5分钟轮询
   → 过滤：确认提交=✅ 且 状态=待处理
   → 无符合记录 → 静默结束（不发消息）
   → 有符合记录 → 逐条处理：

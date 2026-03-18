@@ -108,7 +108,7 @@ openclaw gateway restart
 3. **⚠️ 触发自动处理必须同时完成以下两步：**
    - 「状态」字段选择 → **待处理**
    - 「确认提交」字段 → **勾选 ✅**
-4. OpenClaw 每小时轮询，发现符合条件的记录后自动调用 Cursor Agent 处理
+4. OpenClaw 每5分钟轮询，发现符合条件的记录后自动调用 Cursor Agent 处理
 5. 处理完成后，「状态」更新为「已完成」，「Cursor处理结果」字段写入处理摘要
 
 > **重要**：正在编辑但未勾选「确认提交」的记录不会被误处理。只有两个条件同时满足时才触发。
@@ -130,7 +130,7 @@ openclaw gateway restart
   状态 → 「待处理」
   确认提交 → ✅ 勾选
         ↓
-  cron 每小时轮询
+  cron 每5分钟轮询
   过滤：状态=待处理 AND 确认提交=true
         ↓
   ┌─ 无记录 → 静默，不发送任何消息
@@ -195,7 +195,7 @@ feishu-openclaw-CodeCLI/
 **Q: 如何调整轮询频率**
 ```bash
 openclaw cron list                       # 查看 cron ID
-openclaw cron edit <CRON_ID> --every 30m # 改为30分钟
+openclaw cron edit <CRON_ID> --every 1m  # 改为1分钟（测试用）
 ```
 
 ## License
